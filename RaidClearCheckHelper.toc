@@ -6,8 +6,8 @@
 ## DefaultState: enabled
 ## X-Website: https://wow-check.ryuar.in
 ## X-AddonProvider: github
-## X-Curse-Project-ID: 
-## X-Wago-ID: 
+## X-Curse-Project-ID: 785271
+## X-Wago-ID: 7x61LBN1
 ## X-WoWI-ID: 
 ## SavedVariables: RaidClearCheckHelperDB
 
