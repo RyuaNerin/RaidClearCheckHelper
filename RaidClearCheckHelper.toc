@@ -1,0 +1,26 @@
+## Interface: 100002
+## Title: 레이드 클자 체크 도우미
+## Notes: 레이드 클자 체크(https://wow-check.ryuar.in) 사이트에 공대원 이름을 쉽게 입력할 수 있도록 하는 애드온
+## Author: RyuaNerin (https://ryuar.in/)
+## Version: @project-version@ (@project-abbreviated-hash@)
+## DefaultState: enabled
+## X-Website: https://wow-check.ryuar.in
+## X-AddonProvider: github
+## X-Curse-Project-ID: 
+## X-Wago-ID: 
+## X-WoWI-ID: 
+## SavedVariables: RaidClearCheckHelperDB
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+#@no-lib-strip@
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\LibRealmInfo\LibRealmInfo.lua
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\lib.xml
+#@end-no-lib-strip@
+
+core.lua
