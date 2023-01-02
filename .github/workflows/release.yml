@@ -2,6 +2,10 @@ name: Package and release
 
 on:
   push:
+    branches:
+      - deploy
+    tags:
+      - '**'
   workflow_dispatch:
 
 jobs:

@@ -8,7 +8,7 @@
 ## X-AddonProvider: github
 ## X-Curse-Project-ID: 785271
 ## X-Wago-ID: 7x61LBN1
-## X-WoWI-ID: 
+## X-WoWI-ID: 26515
 ## SavedVariables: RaidClearCheckHelperDB
 
 libs\LibStub\LibStub.lua
