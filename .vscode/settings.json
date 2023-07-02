@@ -1,0 +1,9 @@
+{
+    "Lua.workspace.ignoreDir": [
+        ".vscode",
+        "libs"
+    ],
+    "Lua.diagnostics.globals": [
+        "AddonCompartmentFrame"
+    ]
+}
