@@ -125,22 +125,23 @@ function RaidClearCheckHelper:OnInitialize()
   )
   RaidClearCheckHelper:UpdateMinimapButton()
 
-  RaidClearCheckHelper:RegisterChatCommand('rcch', 'HandleChatCommand')
-  RaidClearCheckHelper:RegisterEvent("GROUP_ROSTER_UPDATE", 'HandleGroupRosterUpdate')
-end
-
-function RaidClearCheckHelper:handleChatCommand(input)
-  local args = {strsplit(' ', input)}
-
-  for _, arg in ipairs(args) do
-    if arg == 'minimap' then
-      self.db.profile.minimap.hide = not self.db.profile.minimap.hide
-      RaidClearCheckHelper:UpdateMinimapButton()
-      return
+  RaidClearCheckHelper:RegisterChatCommand(
+    'rcch',
+    function(input)
+      local args = {strsplit(' ', input)}
+    
+      for _, arg in ipairs(args) do
+        if arg == 'minimap' then
+          self.db.profile.minimap.hide = not self.db.profile.minimap.hide
+          RaidClearCheckHelper:UpdateMinimapButton()
+          return
+        end
+      end
+    
+      core:Show()
     end
-  end
-
-  core:Show()
+    )
+  RaidClearCheckHelper:RegisterEvent("GROUP_ROSTER_UPDATE", 'HandleGroupRosterUpdate')
 end
 
 function RaidClearCheckHelper:UpdateMinimapButton()
