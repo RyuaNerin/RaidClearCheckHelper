@@ -4,12 +4,37 @@ local _, RaidClearCheckHelper = ...
 -- Const
 -- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+---@enum Difficulty
+Difficulty = {
+  None   = 0,
+  Normal = 3,
+  Heroic = 4,
+  Mystic = 5,
+}
+
+---@type table<Difficulty, string>
+Difficulty2String = {
+  [Difficulty.None  ] = "알 수 없음",
+  [Difficulty.Normal] = "일반",
+  [Difficulty.Heroic] = "영웅",
+  [Difficulty.Mystic] = "신화",
+}
+
+---@type table<number, Difficulty>
+DifficultyIDTable = {
+  [14] = Difficulty.Normal,
+  [15] = Difficulty.Heroic,
+  [16] = Difficulty.Mystic,
+}
+
 ---@class Player
 ---@field name  string
 ---@field realm string
 
 ---@class Core
 ---@field frame      Frame?
+---@field difficulty Frame?
+---@field players    Frame?
 ---@field editbox    EditBox?
 ---@field checkbox   CheckButton?
 ---@field curPlayers table<string, Player>
@@ -17,6 +42,8 @@ local _, RaidClearCheckHelper = ...
 ---@type Core
 local core = {
   frame = nil,
+  difficulty = nil,
+  players = nil,
   editbox = nil,
   checkbox = nil,
   curPlayers = {},
@@ -164,21 +191,41 @@ end
 -- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 function core:RefreshText()
-    local text = ""
+    local difficulty = DifficultyIDTable[GetRaidDifficultyID()] or Difficulty.None
+    local players = 0
+
+    local parts = {}
 
     if self.checkbox:GetChecked() then
-      text = "https://wow-check.ryuar.in/?q="
+      table.insert(parts, "https://wow-check.ryuar.in/?")
+
+      if difficulty ~= Difficulty.None then
+        table.insert(parts, "d=")
+        table.insert(parts, difficulty)
+        table.insert(parts, "&")
+      end
+
+      table.insert(parts, "q=")
       for k, v in pairs(self.curPlayers) do
-        text = text .. v.name .. realmToNumber[v.realm]
+        table.insert(parts, v.name)
+        table.insert(parts, realmToNumber[v.realm])
+        players = players + 1
       end
     else
       for k, v in pairs(self.curPlayers) do
         if text ~= "" then
-          text = text .. ","
+          table.insert(parts, text, ",")
         end
-        text = text .. k
+        table.insert(parts, text, k)
+        players = players + 1
       end
     end
+
+    local text = table.concat(parts)
+
+    self.difficulty:SetText("현재 인스턴스 난이도 : " .. Difficulty2String[difficulty])
+
+    self.players:SetText(format("현재 인원 수 : %d", players))
 
     self.editbox:SetText(text)
     self.editbox:HighlightText()
@@ -189,13 +236,15 @@ function core:initFrame()
     return
   end
 
-  local mainFrame = CreateFrame("Frame",       "RaidClearCheckHelperFrame",       UIParent,  "DialogBoxFrame")
-  local checkBox  = CreateFrame("CheckButton", "RaidClearCheckHelperCheckBox",    mainFrame, "UICheckButtonTemplate")
-  local scroll    = CreateFrame("ScrollFrame", "RaidClearCheckHelperScrollFrame", mainFrame, "UIPanelScrollFrameTemplate")
-  local editbox   = CreateFrame("EditBox",     "RaidClearCheckHelperEditBox",     mainFrame)
-  local copyright = mainFrame:CreateFontString("RaidClearCheckHelperCopyright", "OVERLAY", "GameFontNormal")
-  local resize    = CreateFrame("Button",      "RaidClearCheckHelperButton",      mainFrame)
-  local close, _  = mainFrame:GetChildren()
+  local mainFrame  = CreateFrame("Frame",       "RaidClearCheckHelperFrame",       UIParent,  "DialogBoxFrame")
+  local difficulty = mainFrame:CreateFontString("RaidClearCheckHelperDifficulty",  "OVERLAY", "GameFontNormal")
+  local players    = mainFrame:CreateFontString("RaidClearCheckHelperPlayers",     "OVERLAY", "GameFontNormal")
+  local checkBox   = CreateFrame("CheckButton", "RaidClearCheckHelperCheckBox",    mainFrame, "UICheckButtonTemplate")
+  local scroll     = CreateFrame("ScrollFrame", "RaidClearCheckHelperScrollFrame", mainFrame, "UIPanelScrollFrameTemplate")
+  local editbox    = CreateFrame("EditBox",     "RaidClearCheckHelperEditBox",     mainFrame)
+  local copyright  = mainFrame:CreateFontString("RaidClearCheckHelperCopyright",   "OVERLAY", "GameFontNormal")
+  local resize     = CreateFrame("Button",      "RaidClearCheckHelperButton",      mainFrame)
+  local close, _   = mainFrame:GetChildren()
 
   -- mainFrame
   do
@@ -246,10 +295,25 @@ function core:initFrame()
     end)
   end
 
+  -- difficulty
+  do
+    difficulty:SetPoint("TOP", 16, -16)
+    difficulty:SetPoint("LEFT", 16, 0)
+    difficulty:SetPoint("RIGHT", -32, 0)
+  end
+
+  -- players
+  do
+    players:SetPoint("TOP", difficulty, "BOTTOM", 0, -10)
+    players:SetPoint("LEFT", 16, 0)
+    players:SetPoint("RIGHT", -32, 0)
+  end
+
   -- checkBox
   do
     checkBox:SetChecked(RaidClearCheckHelper.db.profile.frame.checked)
-    checkBox:SetPoint("TOPLEFT", 16, -16)
+    checkBox:SetPoint("TOP", players, "BOTTOM", 0, 0)
+    checkBox:SetPoint("LEFT", 16, 0)
 
     ---@diagnostic disable-next-line: undefined-field
     checkBox.Text:SetText("주소 형태로 복사 (크롬 주소창에 바로 붙여넣기 하세요)")
@@ -262,9 +326,9 @@ function core:initFrame()
 
   -- scroll
   do
+    scroll:SetPoint("TOP", checkBox, "BOTTOM", 0, -10)
     scroll:SetPoint("LEFT", 16, 0)
     scroll:SetPoint("RIGHT", -32, 0)
-    scroll:SetPoint("TOP", checkBox, "BOTTOM", 0, -10)
     scroll:SetPoint("BOTTOM", copyright, "TOP", 0, 8)
     scroll:SetScrollChild(editbox)
   end
@@ -281,7 +345,7 @@ function core:initFrame()
 
   -- copyright
   do
-    copyright:SetText("만든이 : 류아네린 (RyuaNerin, 경력직자택경비원-아즈샤라, 곌벴꼲똴꼍놂뚫뀄-아즈샤라)")
+    copyright:SetText("만든이 : 류아네린\n(RyuaNerin, 경력직자택경비원-아즈샤라, 곌벴꼲똴꼍놂뚫뀄-아즈샤라)")
     copyright:SetPoint("LEFT", 16, 0)
     copyright:SetPoint("RIGHT", -32, 0)
     copyright:SetPoint("BOTTOM", close, "TOP", 0, 8)
@@ -315,6 +379,8 @@ function core:initFrame()
 
   ---@diagnostic disable: assign-type-mismatch
   core.frame = mainFrame
+  core.difficulty = difficulty
+  core.players = players
   core.checkbox = checkBox
   core.editbox = editbox
   ---@diagnostic enable: assign-type-mismatch
