@@ -1,4 +1,4 @@
-## Interface: 110000, 110002
+## Interface: 110000, 110002, 110005, 110007
 ## Title: 레이드 클자 체크 도우미
 ## Notes: 레이드 클자 체크(https://wow-check.ryuar.in) 사이트에 공대원 이름을 쉽게 입력할 수 있도록 하는 애드온
 ## Author: RyuaNerin (https://ryuar.in/)
