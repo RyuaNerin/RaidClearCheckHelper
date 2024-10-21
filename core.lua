@@ -213,10 +213,10 @@ function core:RefreshText()
       end
     else
       for k, v in pairs(self.curPlayers) do
-        if text ~= "" then
-          table.insert(parts, text, ",")
+        if players > 0 then
+          table.insert(parts, ",")
         end
-        table.insert(parts, text, k)
+        table.insert(parts, k)
         players = players + 1
       end
     end
