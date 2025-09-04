@@ -36,7 +36,6 @@ DifficultyIDTable = {
 ---@field difficulty Frame?
 ---@field players    Frame?
 ---@field editbox    EditBox?
----@field checkbox   CheckButton?
 ---@field curPlayers table<string, Player>
 
 ---@type Core
@@ -45,7 +44,6 @@ local core = {
   difficulty = nil,
   players = nil,
   editbox = nil,
-  checkbox = nil,
   curPlayers = {},
 }
 
@@ -195,30 +193,19 @@ function core:RefreshText()
     local players = 0
 
     local parts = {}
+    table.insert(parts, "https://wow-check.ryuar.in/?")
 
-    if self.checkbox:GetChecked() then
-      table.insert(parts, "https://wow-check.ryuar.in/?")
+    if difficulty ~= Difficulty.None then
+      table.insert(parts, "d=")
+      table.insert(parts, difficulty)
+      table.insert(parts, "&")
+    end
 
-      if difficulty ~= Difficulty.None then
-        table.insert(parts, "d=")
-        table.insert(parts, difficulty)
-        table.insert(parts, "&")
-      end
-
-      table.insert(parts, "q=")
-      for k, v in pairs(self.curPlayers) do
-        table.insert(parts, v.name)
-        table.insert(parts, realmToNumber[v.realm])
-        players = players + 1
-      end
-    else
-      for k, v in pairs(self.curPlayers) do
-        if players > 0 then
-          table.insert(parts, ",")
-        end
-        table.insert(parts, k)
-        players = players + 1
-      end
+    table.insert(parts, "q=")
+    for k, v in pairs(self.curPlayers) do
+      table.insert(parts, v.name)
+      table.insert(parts, realmToNumber[v.realm])
+      players = players + 1
     end
 
     local text = table.concat(parts)
@@ -239,10 +226,9 @@ function core:initFrame()
   local mainFrame  = CreateFrame("Frame",       "RaidClearCheckHelperFrame",       UIParent,  "DialogBoxFrame")
   local difficulty = mainFrame:CreateFontString("RaidClearCheckHelperDifficulty",  "OVERLAY", "GameFontNormal")
   local players    = mainFrame:CreateFontString("RaidClearCheckHelperPlayers",     "OVERLAY", "GameFontNormal")
-  local checkBox   = CreateFrame("CheckButton", "RaidClearCheckHelperCheckBox",    mainFrame, "UICheckButtonTemplate")
   local scroll     = CreateFrame("ScrollFrame", "RaidClearCheckHelperScrollFrame", mainFrame, "UIPanelScrollFrameTemplate")
   local editbox    = CreateFrame("EditBox",     "RaidClearCheckHelperEditBox",     mainFrame)
-  local copyright  = mainFrame:CreateFontString("RaidClearCheckHelperCopyright",   "OVERLAY", "GameFontNormal")
+  local notify     = mainFrame:CreateFontString("RaidClearCheckHelperNotify",      "OVERLAY", "GameFontNormal")
   local resize     = CreateFrame("Button",      "RaidClearCheckHelperButton",      mainFrame)
   local close, _   = mainFrame:GetChildren()
 
@@ -309,27 +295,12 @@ function core:initFrame()
     players:SetPoint("RIGHT", -32, 0)
   end
 
-  -- checkBox
-  do
-    checkBox:SetChecked(RaidClearCheckHelper.db.profile.frame.checked)
-    checkBox:SetPoint("TOP", players, "BOTTOM", 0, 0)
-    checkBox:SetPoint("LEFT", 16, 0)
-
-    ---@diagnostic disable-next-line: undefined-field
-    checkBox.Text:SetText("주소 형태로 복사 (크롬 주소창에 바로 붙여넣기 하세요)")
-
-    checkBox:SetScript("OnClick", function()
-      RaidClearCheckHelper.db.profile.frame.checked = checkBox:GetChecked() --[[@as boolean]]
-      core:RefreshText()
-    end)
-  end
-
   -- scroll
   do
-    scroll:SetPoint("TOP", checkBox, "BOTTOM", 0, -10)
+    scroll:SetPoint("TOP", players, "BOTTOM", 0, -10)
     scroll:SetPoint("LEFT", 16, 0)
     scroll:SetPoint("RIGHT", -32, 0)
-    scroll:SetPoint("BOTTOM", copyright, "TOP", 0, 8)
+    scroll:SetPoint("BOTTOM", notify, "TOP", 0, 8)
     scroll:SetScrollChild(editbox)
   end
 
@@ -340,15 +311,37 @@ function core:initFrame()
     editbox:SetAutoFocus(true)
     editbox:SetFontObject("ChatFontNormal")
 
-    editbox:SetScript("OnEscapePressed", core.Hide)
+    -- simc에서 가져옴. 복사 후 자동으로 닫히게
+    local ctrlDown = false
+    editbox:SetScript("OnEscapePressed", function() f:Hide() end)
+    editbox:SetScript("OnKeyDown", function(self, key)
+      if key == "LCTRL" or key == "RCTRL" or key == "LMETA" or key == "RMETA" then
+        ctrlDown = true
+      end
+    end)
+    editbox:SetScript("OnKeyUp", function(self, key)
+      if key == "LCTRL" or key == "RCTRL" or key == "LMETA" or key == "RMETA" then
+        -- Add a small grace period. In testing, the way I press Ctrl-C would sometimes have Ctrl keyup bfore C
+        C_Timer.After(0.2, function() ctrlDown = false end)
+      end
+      if ctrlDown then
+        -- handle copy or cut
+        if key == "C" or key == "X" then
+          -- Just in case there's some weird way that WoW could close the window before the OS copies
+          C_Timer.After(0.1, function()
+            core:Hide()
+          end)
+        end
+      end
+    end)
   end
 
-  -- copyright
+  -- notify
   do
-    copyright:SetText("만든이 : 류아네린\n(RyuaNerin, 경력직자택경비원-아즈샤라, 곌벴꼲똴꼍놂뚫뀄-아즈샤라)")
-    copyright:SetPoint("LEFT", 16, 0)
-    copyright:SetPoint("RIGHT", -32, 0)
-    copyright:SetPoint("BOTTOM", close, "TOP", 0, 8)
+    notify:SetText("Ctrl+C 눌러서 복사하고, 인터넷 주소창에 Ctrl+V > 엔터\n\n복사 후 자동으로 닫힙니다.")
+    notify:SetPoint("LEFT", 16, 0)
+    notify:SetPoint("RIGHT", -32, 0)
+    notify:SetPoint("BOTTOM", close, "TOP", 0, 8)
   end
 
   -- resize
@@ -376,12 +369,13 @@ function core:initFrame()
       RaidClearCheckHelper.db.profile.frame.height = mainFrame:GetHeight()
     end)
   end
+  
 
   ---@diagnostic disable: assign-type-mismatch
   core.frame = mainFrame
   core.difficulty = difficulty
   core.players = players
-  core.checkbox = checkBox
+  core.copyClose = copyClose
   core.editbox = editbox
   ---@diagnostic enable: assign-type-mismatch
 end
