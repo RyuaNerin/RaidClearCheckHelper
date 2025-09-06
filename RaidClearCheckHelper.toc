@@ -10,6 +10,7 @@
 ## X-Wago-ID: 7x61LBN1
 ## X-WoWI-ID: 26515
 ## Version: @project-version@
+## Category-koKR: 던전 및 공격대
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua
@@ -29,3 +30,4 @@ Libs\LibDBIcon-1.0\lib.xml
 #@end-no-lib-strip@
 
 core.lua
+
