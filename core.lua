@@ -124,14 +124,14 @@ RaidClearCheckHelper = LibStub("AceAddon-3.0"):NewAddon(RaidClearCheckHelper, "R
 
 local RaidClearCheckHelperLDB = LibStub("LibDataBroker-1.1"):NewDataObject("RaidClearCheckHelper", {
   type = "data source",
-  text = "레이드 클자 체크 도우미",
+  text = "레이드 클자 체크 도우미 (12.1.0)",
   label = "RaidClearCheckHelper",
   icon = "Interface\\AddOns\\RaidClearCheckHelper\\logo",
   OnClick = function()
       core:Toggle()
   end,
   OnTooltipShow = function(tooltip) ---@param tooltip GameTooltip
-      tooltip:AddLine("레이드 클자 체크 도우미")
+      tooltip:AddLine("레이드 클자 체크 도우미 (12.1.0)")
       tooltip:AddLine(" ")
       tooltip:AddLine("'/rcch minimap' 명령어를 통해 아이콘을 켜고 끌 수 있습니다.")
   end
@@ -430,7 +430,7 @@ end
 -- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 AddonCompartmentFrame:RegisterAddon({
-  text = "레이드 클자 체크 도우미",
+  text = "레이드 클자 체크 도우미 (12.1.0)",
   icon = "Interface\\AddOns\\RaidClearCheckHelper\\logo",
   notCheckable = true,
   func = core.Show,
